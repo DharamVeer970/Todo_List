@@ -5,6 +5,7 @@ import re
 import sqlite3
 from contextlib import contextmanager
 from datetime import date, timedelta
+from functools import partial
 from pathlib import Path
 
 DB = Path(os.environ.get("TODO_DB") or Path(__file__).with_name("todo.db"))
@@ -52,37 +53,59 @@ def init():
                 c.execute(f"ALTER TABLE tasks ADD COLUMN {col} {decl}")
 
 
-def _clean(data, partial=False):
+# One validator per field. Each takes the raw value and returns what to store,
+# or raises ValueError. Adding a field is one entry in FIELDS below.
+TITLE_LEN = (1, 200)
+
+
+def _valid_title(value):
+    title = str(value).strip()
+    if not TITLE_LEN[0] <= len(title) <= TITLE_LEN[1]:
+        raise ValueError("title must be %d-%d characters" % TITLE_LEN)
+    return title
+
+
+def _valid_choice(allowed, field, value):
+    if value not in allowed:
+        raise ValueError(f"{field} must be one of: {', '.join(allowed)}")
+    return value
+
+
+def _valid_due(value):
+    due = value or None
+    if due is not None and not DATE.match(str(due)):
+        raise ValueError("due must look like YYYY-MM-DD")
+    return due
+
+
+def _valid_done(value):
+    return int(bool(value))
+
+
+def _valid_position(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise ValueError("position must be a whole number") from None
+
+
+FIELDS = {
+    "title": _valid_title,
+    "priority": partial(_valid_choice, PRIORITIES, "priority"),
+    "repeat": partial(_valid_choice, REPEATS, "repeat"),
+    "due": _valid_due,
+    "done": _valid_done,
+    "position": _valid_position,
+}
+
+
+def _clean(data, partial_update=False):
     """Whitelist + validate incoming fields. Raises ValueError on bad input."""
     if not isinstance(data, dict):
         raise ValueError("expected a JSON object")
-    out = {}
-    if "title" in data or not partial:
-        title = str(data.get("title", "")).strip()
-        if not 1 <= len(title) <= 200:
-            raise ValueError("title must be 1-200 characters")
-        out["title"] = title
-    if "priority" in data:
-        if data["priority"] not in PRIORITIES:
-            raise ValueError("priority must be low, medium or high")
-        out["priority"] = data["priority"]
-    if "repeat" in data:
-        if data["repeat"] not in REPEATS:
-            raise ValueError("repeat must be none, daily, weekly or monthly")
-        out["repeat"] = data["repeat"]
-    if "due" in data:
-        due = data["due"] or None
-        if due is not None and not DATE.match(str(due)):
-            raise ValueError("due must look like YYYY-MM-DD")
-        out["due"] = due
-    if "done" in data:
-        out["done"] = int(bool(data["done"]))
-    if "position" in data:
-        try:
-            out["position"] = int(data["position"])
-        except (TypeError, ValueError):
-            raise ValueError("position must be a whole number")
-    return out
+    if not partial_update and "title" not in data:
+        raise ValueError("title must be %d-%d characters" % TITLE_LEN)
+    return {name: check(data[name]) for name, check in FIELDS.items() if name in data}
 
 
 def _one(c, tid):
@@ -128,7 +151,7 @@ def add(data):
 
 
 def update(tid, data):
-    f = _clean(data, partial=True)
+    f = _clean(data, partial_update=True)
     if not f:
         raise ValueError("nothing to update")
     # keys come from _clean's whitelist, so this interpolation is safe

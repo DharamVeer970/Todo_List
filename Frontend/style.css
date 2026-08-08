@@ -1,0 +1,225 @@
+:root {
+  --bg: #0a0a14;
+  --glass: rgba(18, 17, 34, .66);
+  --line: rgba(255, 255, 255, .09);
+  --text: #eceafd;
+  --dim: #8b88a8;
+  --accent: #8b7bff;
+  --low: #5ee7c0;
+  --medium: #ffc46b;
+  --high: #ff6b81;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  display: grid;
+  place-items: start center;
+  padding: 6vh 20px 10vh;
+  overflow-x: hidden;
+}
+
+/* --- animated aurora background --- */
+/* Soft edges come from the gradient itself, not filter: blur(). A blur filter
+   here has to be recomputed every frame the blobs move, which is what made
+   scrolling stutter. Gradients are painted once and only the transform
+   animates, so the whole thing stays on the compositor. */
+.aurora { position: fixed; inset: 0; z-index: -1; opacity: .75; }
+.aurora i {
+  position: absolute; width: 60vmax; height: 60vmax;
+  will-change: transform;
+  animation: drift 26s ease-in-out infinite alternate;
+}
+.aurora i:nth-child(1) {
+  background: radial-gradient(closest-side, rgba(109, 59, 255, .55), transparent);
+  top: -20vmax; left: -14vmax;
+}
+.aurora i:nth-child(2) {
+  background: radial-gradient(closest-side, rgba(0, 194, 255, .38), transparent);
+  top: 14vmax; right: -22vmax; animation-delay: -9s;
+}
+.aurora i:nth-child(3) {
+  background: radial-gradient(closest-side, rgba(255, 61, 139, .38), transparent);
+  bottom: -26vmax; left: 20vmax; animation-delay: -17s;
+}
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, 5vmax, 0) scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) { .aurora i { animation: none; } }
+
+/* --- glass panel --- */
+/* No backdrop-filter: it re-samples and re-blurs everything behind the panel
+   on every scrolled frame. A translucent fill over the gradient reads the
+   same and costs nothing. */
+.app {
+  width: min(720px, 100%);
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+  padding: 28px;
+  display: grid;
+  gap: 18px;
+}
+
+.head h1 {
+  font-size: 34px; font-weight: 700; letter-spacing: -.03em;
+  background: linear-gradient(100deg, #fff, var(--accent) 55%, #00c2ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.head p { color: var(--dim); font-size: 13px; }
+
+/* --- inputs --- */
+input, select, button { font: inherit; color: inherit; }
+
+input, select {
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px 13px;
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+input:focus, select:focus {
+  border-color: var(--accent);
+  background: rgba(139, 123, 255, .1);
+}
+input::placeholder { color: var(--dim); }
+select option { background: #16162a; }
+#due { color-scheme: dark; }
+
+#new { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 8px; }
+
+#new button {
+  border: 0; border-radius: 12px; padding: 0 22px; cursor: pointer;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--accent), #5b8bff);
+  box-shadow: 0 6px 20px rgba(139, 123, 255, .35);
+  transition: transform .12s, box-shadow .12s;
+}
+#new button:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(139, 123, 255, .5); }
+#new button:active { transform: translateY(1px); }
+
+/* --- toolbar --- */
+.bar { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; }
+#filters { display: flex; gap: 4px; background: rgba(255,255,255,.05); border-radius: 12px; padding: 4px; }
+#filters button {
+  border: 0; background: none; color: var(--dim); cursor: pointer;
+  padding: 7px 14px; border-radius: 9px; transition: .15s;
+}
+#filters button:hover { color: var(--text); }
+#filters button.on { background: rgba(255,255,255,.12); color: var(--text); }
+.ghost {
+  background: none; border: 1px solid var(--line); border-radius: 12px;
+  padding: 8px 14px; color: var(--dim); cursor: pointer; transition: .15s;
+}
+.ghost:hover { color: var(--high); border-color: var(--high); }
+
+#bell { filter: grayscale(1); opacity: .5; }
+#bell:hover { opacity: 1; }
+#bell.on { filter: none; opacity: 1; border-color: var(--accent); }
+
+/* --- tag bar --- */
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags button {
+  border: 1px solid var(--line); background: none; color: var(--dim);
+  border-radius: 999px; padding: 4px 12px; font-size: 12.5px; cursor: pointer; transition: .15s;
+}
+.tags button:hover { color: var(--text); }
+.tags button.on { background: rgba(139,123,255,.18); border-color: var(--accent); color: var(--text); }
+
+/* --- list --- */
+#list { list-style: none; padding: 0; display: grid; gap: 8px; }
+
+.task {
+  --rail: var(--medium);
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px 13px 18px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rail);
+  border-radius: var(--radius);
+  /* no entry animation: rows are rebuilt on every render, so it replayed on
+     all of them at once — including on every keystroke in the search box */
+  transition: background .15s, transform .15s;
+}
+.task:hover { background: rgba(255, 255, 255, .075); transform: translateX(2px); }
+.task.p-low { --rail: var(--low); }
+.task.p-high { --rail: var(--high); }
+
+.check {
+  width: 24px; height: 24px; flex: none; cursor: pointer;
+  border: 2px solid var(--rail); border-radius: 50%;
+  background: none; padding: 0; display: grid; place-items: center;
+  transition: background .18s;
+}
+.check svg { width: 14px; height: 14px; fill: none; stroke: var(--bg); stroke-width: 3.4;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset .22s ease-out; }
+.task.done .check { background: var(--rail); }
+.task.done .check svg { stroke-dashoffset: 0; }
+
+.title { outline: none; border-radius: 6px; padding: 2px 4px; cursor: text; overflow-wrap: anywhere; }
+.title:focus { background: rgba(255,255,255,.09); }
+.task.done .title { color: var(--dim); text-decoration: line-through; }
+
+.chips { display: flex; gap: 6px; }
+.chip {
+  font-size: 11.5px; color: var(--dim); white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px;
+}
+.chip.late { color: var(--high); border-color: var(--high); }
+.chip.rep { color: var(--accent); border-color: var(--accent); }
+
+/* selected by keyboard, and mid-drag */
+.task.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.task.drag { opacity: .35; }
+
+.del {
+  border: 0; background: none; color: var(--dim); cursor: pointer;
+  font-size: 22px; line-height: 1; padding: 0 4px; opacity: .5; transition: .15s;
+}
+.del:hover { color: var(--high); opacity: 1; }
+
+.empty, .hint { color: var(--dim); font-size: 13px; text-align: center; }
+.empty { padding: 26px 0; }
+.hint { opacity: .6; font-size: 12px; line-height: 2; }
+kbd {
+  font: inherit; font-size: 11px; border: 1px solid var(--line);
+  border-radius: 5px; padding: 1px 5px; background: rgba(255,255,255,.05);
+}
+
+/* --- toast --- */
+#toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 24px);
+  display: flex; align-items: center; gap: 12px;
+  background: #1b1b30; border: 1px solid var(--high); color: var(--high);
+  padding: 10px 18px; border-radius: 12px; font-size: 13px;
+  opacity: 0; pointer-events: none; transition: .25s;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.act { border-color: var(--accent); color: var(--text); pointer-events: auto; }
+#toast button {
+  border: 0; background: var(--accent); color: #fff; cursor: pointer;
+  border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .app { padding: 20px; border-radius: 18px; }
+  #new { grid-template-columns: 1fr 1fr; }
+  #new input#title { grid-column: 1 / -1; }
+  #new button { grid-column: 1 / -1; padding: 12px; }
+  .bar { grid-template-columns: 1fr 1fr; }
+  .bar #search, .bar #filters { grid-column: 1 / -1; }
+  #filters { justify-content: space-between; }
+  .hint { display: none; }  /* no keyboard on a phone */
+}

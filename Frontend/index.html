@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit · To-Do</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<main class="app">
+  <header class="head">
+    <h1>Orbit</h1>
+    <p id="summary">loading…</p>
+  </header>
+
+  <form id="new" autocomplete="off">
+    <input id="title" placeholder="What needs doing?  add #tags inline" maxlength="200" required aria-label="Task">
+    <select id="priority" aria-label="Priority">
+      <option value="low">Low</option>
+      <option value="medium" selected>Medium</option>
+      <option value="high">High</option>
+    </select>
+    <input id="due" type="date" aria-label="Due date">
+    <select id="repeat" aria-label="Repeat">
+      <option value="none">Once</option>
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+    <button type="submit">Add</button>
+  </form>
+
+  <div class="bar">
+    <input id="search" type="search" placeholder="Search tasks…" aria-label="Search">
+    <nav id="filters" aria-label="Filter by status">
+      <button class="on" data-filter="all">All</button>
+      <button data-filter="active">Active</button>
+      <button data-filter="done">Done</button>
+    </nav>
+    <button id="bell" class="ghost" title="Reminders off">🔔</button>
+    <button id="clear" class="ghost">Clear done</button>
+  </div>
+
+  <nav id="tags" class="tags" aria-label="Filter by tag"></nav>
+
+  <ul id="list"></ul>
+  <p id="empty" class="empty" hidden>Nothing here. Enjoy the quiet.</p>
+
+  <p class="hint">
+    <kbd>n</kbd> new · <kbd>/</kbd> search · <kbd>j</kbd><kbd>k</kbd> move · <kbd>x</kbd> done ·
+    <kbd>e</kbd> rename · <kbd>del</kbd> delete · drag to reorder · 🔔 nudges you about overdue work
+  </p>
+</main>
+
+<output id="toast"></output>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

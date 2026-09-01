@@ -1,3 +1,4 @@
+
 # Orbit · To-Do
 
 Zero-dependency to-do app. Python stdlib backend (`http.server` + `sqlite3`),
@@ -55,11 +56,11 @@ Off unless configured. Gmail needs an [App Password](https://myaccount.google.co
 not your normal login.
 
 ```
-set TODO_SMTP_HOST=smtp.gmail.com
+set TODO_SMTP_HOST=smtp.provider.example
 set TODO_SMTP_PORT=587
-set TODO_SMTP_USER=you@gmail.com
+set TODO_SMTP_USER=your-smtp-user-name
 set TODO_SMTP_PASS=your-app-password
-set TODO_EMAIL_TO=you@gmail.com
+set TODO_EMAIL_TO=your-email-address
 set TODO_EMAIL_HOUR=8
 python main.py
 ```
@@ -67,6 +68,7 @@ python main.py
 One mail a day, listing everything overdue. Port 465 switches to SSL
 automatically. If the mail server is unreachable the app keeps running and
 prints `[mail] skipped: ...`.
+
 
 ## Phone access (same wifi)
 
@@ -111,3 +113,4 @@ set TODO_KEY=key.pem
 | `TODO_KEY` | – | private key, if separate from the certificate |
 | `TODO_DB` | `Backend/todo.db` | database file |
 | `TODO_NO_BROWSER` | – | don't auto-open a browser |
+
